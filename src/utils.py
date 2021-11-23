@@ -1,13 +1,17 @@
+from transformers import AutoTokenizer
+
+MODEL_CHECKPOINT = "distilbert-base-uncased"
+TOKENIZER = AutoTokenizer.from_pretrained(MODEL_CHECKPOINT)
+
 MAX_LENGTH = 384 # The maximum length of a feature
 DOC_STRIDE = 128
 
-def prepare_train_features(examples, tokenizer):
+def prepare_train_features(examples):
     '''
     Prepare train features from given examples
 
             Parameters:
                     examples: a dict, from an datasets.arrow_dataset.Dataset
-                    tokenizer: A model tokenizer from the transformer library
 
             Returns:
                     transformers.tokenization_utils_base.BatchEncoding
@@ -15,10 +19,11 @@ def prepare_train_features(examples, tokenizer):
     '''
     global MAX_LENGTH
     global DOC_STRIDE
-    pad_on_right = tokenizer.padding_side == "right"
+    global TOKENIZER
+    pad_on_right = TOKENIZER.padding_side == "right"
     examples["question"] = [q.lstrip() for q in examples["question"]]
 
-    tokenized_examples = tokenizer(
+    tokenized_examples = TOKENIZER(
         examples["question" if pad_on_right else "context"],
         examples["context" if pad_on_right else "question"],
         truncation="only_second" if pad_on_right else "only_first",
@@ -36,7 +41,7 @@ def prepare_train_features(examples, tokenizer):
 
     for i, offsets in enumerate(offset_mapping):
         input_ids = tokenized_examples["input_ids"][i]
-        cls_index = input_ids.index(tokenizer.cls_token_id)
+        cls_index = input_ids.index(TOKENIZER.cls_token_id)
         sequence_ids = tokenized_examples.sequence_ids(i)
         sample_index = sample_mapping[i]
         answers = examples["answers"][sample_index]
@@ -69,26 +74,26 @@ def prepare_train_features(examples, tokenizer):
 
     return tokenized_examples
 
-def prepare_validation_features(examples, tokenizer):
+def prepare_validation_features(examples):
     '''
     Prepare validation features from given examples
 
             Parameters:
                     examples: a dict, from an datasets.arrow_dataset.Dataset
-                    tokenizer: A model tokenizer from the transformer library
 
             Returns:
                     transformers.tokenization_utils_base.BatchEncoding
                     
     '''
 
-    pad_on_right = tokenizer.padding_side == "right" 
-    examples["question"] = [q.lstrip() for q in examples["question"]]
 
     global MAX_LENGTH
     global DOC_STRIDE
+    global TOKENIZER
 
-    tokenized_examples = tokenizer(
+    pad_on_right = TOKENIZER.padding_side == "right" 
+    examples["question"] = [q.lstrip() for q in examples["question"]]
+    tokenized_examples = TOKENIZER(
         examples["question" if pad_on_right else "context"],
         examples["context" if pad_on_right else "question"],
         truncation="only_second" if pad_on_right else "only_first",
@@ -114,3 +119,17 @@ def prepare_validation_features(examples, tokenizer):
         ]
 
     return tokenized_examples
+
+def tokenize_dataset(datasets):
+    '''
+    Apply the tokenization on given structure of datasets
+
+            Parameters:
+                    datasets: A dict of datasets
+
+            Returns:
+                    A datasets.dataset_dict.DatasetDict
+                    
+    '''
+    
+    return datasets.map(prepare_train_features, batched=True, remove_columns=datasets["train"].column_names)
