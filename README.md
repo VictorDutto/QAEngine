@@ -21,6 +21,9 @@ Thus, if you have difficulties with the installation, make sure your
 - victor.dutto
 
 #### Architecture description
+We left each part in its respective notebook since we are not currently satisfied of the way we use our QAmodel to answer our Searchable Index entries.
+Thus, part 1 is in P1 and such...
+
 In `tools/utils.py` are the functions which aim to package the downloading of datas
 
 In the src folder will be all the functions which can be used as a module:
