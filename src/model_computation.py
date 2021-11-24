@@ -39,7 +39,15 @@ def sentence_transformer_tests(model, is_dot, df, unique_questions, q_and_a):
     return (result, embeddings, questions_embedding, run_time)
 
 
-def k_nearest_neighbours_context(model, question, k_number_of_results, df, index):
+def k_nearest_neighbours_context(question, k_number_of_results, df):
+  model = SentenceTransformer('msmarco-distilbert-base-tas-b')
+  embeddings = model.encode(df.context.to_list(), show_progress_bar=True)
+  
+  _, index = get_embeddings_and_index(embeddings, df)
+  return k_nearest_neighbours_context_(model, question, k_number_of_results, df, index)
+ 
+
+def k_nearest_neighbours_context_(model, question, k_number_of_results, df, index):
   list_k_context = []
   D, I = vector_search([question], model, index, num_results=k_number_of_results)
   list_of_all_context = df.context.to_list()
