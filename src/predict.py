@@ -1,7 +1,42 @@
-from tqdm.auto import tqdm
 import collections
+import numpy as np
+
+from tqdm.auto import tqdm
+from transformers import AutoModelForQuestionAnswering, TrainingArguments, Trainer
+
+def create_model(model_name: str) -> tuple:
+    '''
+    Shows num_examples random elements from given datasets.
+
+            Parameters:
+                    model_name: The name of the model to instantiate
+
+            Returns:
+                    A tuple (model, bool)
+    '''
+    is_reference = True if model_name == "mvonwyl/distilbert-base-uncased-finetuned-squad2" else False
+
+    model = AutoModelForQuestionAnswering.from_pretrained(model_name)
+    return (model, is_reference)
+
+
 
 def postprocess_qa_predictions(examples, features, tokenizer, raw_predictions, n_best_size = 20, max_answer_length = 30):
+    '''
+    Shows num_examples random elements from given datasets.
+
+            Parameters:
+                    examples: the dataset to evaluate
+                    features: Its features computed by utils
+                    tokenizer: The tokenizer used to process the text data
+                    raw predictions: The predictions from the model on the validation data
+                    n_best_size: An integer
+                    max_answer_length: An integer
+
+            Returns:
+                    None
+    '''
+
     all_start_logits, all_end_logits = raw_predictions
     # Build a map example to its corresponding features.
     example_id_to_index = {k: i for i, k in enumerate(examples["id"])}
