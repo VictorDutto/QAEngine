@@ -2,6 +2,8 @@
 
 
 ## Usage
+
+This project as been mostly tested on collab environments, with the installations done with
 `pip install -r requirements.txt`
 
 A little note, this project uses faiss, which is not compatible with all python version
